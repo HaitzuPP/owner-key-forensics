@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Owner-Key Forensics — Bittensor subnet owners</title>
+<meta name="description" content="Subnet owner-key forensics: owner emissions earned vs sold vs retained, since each owner wallet went live. Mainframe (SN25) and Vanta (SN8). TAO & USD.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+:root{--bg:#0b0a0b;--bg-card:#111;--border:#1a1a1a;--border-hover:#333;--text:#fff;--text-sec:#888;--text-muted:#555;--accent:#00d672;--accent-dim:color-mix(in srgb,#00d672 15%,var(--bg));--red:#dc2626;--red-dim:color-mix(in srgb,#dc2626 15%,var(--bg));--amber:#e0a800;--gold:#d4a017;--purple:#a855f7}
+[data-theme="light"]{--bg:#fafafa;--bg-card:#fff;--border:#e0e0e0;--border-hover:#ccc;--text:#111;--text-sec:#555;--text-muted:#999;--accent:#059669;--accent-dim:color-mix(in srgb,#059669 12%,#fff);--red:#dc2626;--red-dim:color-mix(in srgb,#dc2626 10%,#fff);--amber:#b7791f;--gold:#a37514;--purple:#7c3aed}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.6;transition:background .3s,color .3s;min-height:100vh;display:flex;flex-direction:column}
+h1,h2,h3{font-family:Arial,Helvetica,sans-serif;font-weight:700}
+a{color:inherit}
+header{position:sticky;top:0;z-index:100;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+nav{max-width:1200px;margin:0 auto;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.nav-brand{display:flex;align-items:center;gap:.5rem;text-decoration:none;color:var(--text);font-size:1.05rem;font-weight:700}
+.nav-brand svg{width:26px;height:26px;color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:.8rem}
+.nav-link{color:var(--text-sec);text-decoration:none;font-size:.8rem;font-weight:600;letter-spacing:.5px;transition:color .2s;cursor:pointer}
+.nav-link:hover,.nav-link.active{color:var(--accent)}
+.theme-toggle,.rbtn{background:none;border:1px solid var(--border);color:var(--text-sec);cursor:pointer;padding:.3rem .55rem;border-radius:6px;font-size:.7rem;font-family:inherit;transition:all .2s}
+.theme-toggle:hover,.rbtn:hover{border-color:var(--accent);color:var(--accent)}
+main{flex:1;width:100%;max-width:1200px;margin:0 auto;padding:2.2rem 1.5rem 3rem}
+.hero-label{font-size:.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:3px;margin-bottom:.8rem;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.hero-title{font-size:clamp(28px,5vw,44px);letter-spacing:-0.02em;line-height:1.1;margin-bottom:.7rem}
+.hero-sub{font-size:14.5px;color:var(--text-sec);max-width:720px;line-height:1.7}
+.src{font-size:.72rem;color:var(--text-muted);margin-top:.8rem}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block;box-shadow:0 0 0 3px var(--accent-dim)}
+.dot.snap{background:var(--amber);box-shadow:0 0 0 3px color-mix(in srgb,var(--amber) 20%,transparent)}
+.status{font-size:.62rem;color:var(--text-muted);letter-spacing:.4px}
+/* wallet section */
+.wsec{margin-top:2.6rem;border-top:1px solid var(--border);padding-top:1.6rem}
+.wsec:first-of-type{border-top:none}
+.wtitle{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;margin-bottom:.2rem}
+.wtitle h2{font-size:1.5rem}
+.wuid{color:var(--accent);font-size:.9rem;font-weight:700}
+.wmeta{font-size:.75rem;color:var(--text-muted)}
+.wmeta a{color:var(--text-sec);text-decoration:none}.wmeta a:hover{color:var(--accent)}
+.statband{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:1.2rem 0 1.6rem}
+.sb{background:var(--bg-card);padding:1rem 1.1rem}
+.sb-label{font-size:.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem}
+.sb-val{font-size:1.3rem;font-weight:700;line-height:1.05}
+.sb-sub{font-size:.7rem;margin-top:.25rem;color:var(--text-muted)}
+.up{color:var(--accent)}.down{color:var(--red)}
+.grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:1.1rem;margin-bottom:1.4rem}
+.panel{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.2rem}
+.panel h3{font-size:.9rem;margin-bottom:.2rem}
+.panel .cap{font-size:.72rem;color:var(--text-muted);margin-bottom:.7rem}
+.legend{display:flex;gap:1.1rem;font-size:.7rem;color:var(--text-sec);margin-top:.5rem;flex-wrap:wrap}
+.legend .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.35rem;vertical-align:middle}
+svg{display:block;width:100%;height:auto}
+.conv{margin-top:.4rem;font-size:.78rem;color:var(--text-sec);line-height:1.6}
+.convbar{height:12px;border-radius:6px;background:var(--border);overflow:hidden;display:flex;margin:.5rem 0}
+.convbar i{display:block;height:100%}
+/* table */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:640px}
+thead th{text-align:right;padding:.55rem .7rem;font-size:.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--bg-card)}
+thead th:first-child{text-align:left}
+tbody td{padding:.5rem .7rem;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td:first-child{text-align:left;color:var(--text-sec)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg-card)}
+tbody tr.base td:first-child::after{content:" · baseline";color:var(--text-muted);font-size:.65rem}
+.pos{color:var(--red)}.neg{color:var(--accent)}
+.method{margin-top:2.6rem;border-top:1px solid var(--border);padding-top:1.4rem}
+.method h3{font-size:1rem;margin-bottom:.6rem}
+.method p{font-size:.8rem;color:var(--text-sec);line-height:1.75;margin-bottom:.7rem;max-width:900px}
+.method b{color:var(--text)}
+footer{border-top:1px solid var(--border);padding:1.8rem 1.5rem;text-align:center;margin-top:2.2rem}
+.footer-text{font-size:.72rem;color:var(--text-muted)}
+.footer-text a{color:var(--text-sec);text-decoration:none}.footer-text a:hover{color:var(--accent)}
+@media(max-width:820px){.statband{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+@media(max-width:520px){.statband{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><nav>
+<a href="#" class="nav-brand">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 4-6"/><circle cx="10" cy="10" r="1.3" fill="currentColor"/></svg>
+Owner-Key Forensics
+</a>
+<div class="nav-right" id="navWallets"></div>
+</nav></header>
+
+<main>
+<div class="hero-label"><span>TAO Institute · On-Chain Forensics</span><span class="status"><span id="dot" class="dot"></span> <span id="statusTxt">loading…</span></span></div>
+<h1 class="hero-title">Subnet Owner-Key Analysis</h1>
+<p class="hero-sub">Owner emissions <span class="up">earned</span> vs <span class="down">sold</span>, and what's left in the wallet — since each owner wallet went live. All values in alpha (α), TAO and USD. Two subnets: <b>Mainframe (SN25)</b> and <b>Vanta (SN8)</b>.</p>
+<div class="src" id="src"></div>
+
+<div id="wallets"></div>
+
+<section class="method">
+<h3>How this is measured</h3>
+<p><b>Owner emission (earned).</b> Every subnet emits ~7,200 α/day into its pool (≈1 α/block; no halving occurred in this window — next halving 2030), and the subnet owner receives the protocol <b>18% owner cut</b> ≈ 1,296 α/day. Earned is that constant α flow, valued at each month's alpha price (TAO & USD). This converges with the "0.18 × monthly change in subnet total-alpha" method used elsewhere.</p>
+<p><b>Retained.</b> The owner coldkey's total staked-alpha value across all its hotkeys, from taostats account history (<code>balance_staked_alpha_as_tao</code>), converted to α at each month's price. Each series begins the month the owner wallet first held staked alpha (dTAO era, Feb 2025+).</p>
+<p><b>Sold.</b> Earned − change in retained (in α). A <span class="neg">negative "sold" (green)</span> means the position grew faster than the owner cut — validator rewards / re-staking / buying = <b>accumulation, not a sale</b>. Read "sold" as <b>α unstaked → swapped to TAO through the pool</b>, not a coldkey transfer, and not confirmed as a fiat exit. The first live month is a baseline (position established, not a sale).</p>
+<p><b>Conviction.</b> Live conviction-locks on the subnet from taostats. Both owners currently hold <b>0% of their own stake conviction-locked</b> — their retained is fully liquid; the locks shown are external wallets locking to the owner hotkey.</p>
+<p style="color:var(--text-muted)">Prices via tao.com Data API; balances & conviction via taostats. Owner emission uses the protocol-constant α rate rather than reconstructing daily total-alpha. Realised USD is timing-dependent as alpha prices moved. Verify against taostats before external use.</p>
+</section>
+</main>
+
+<footer><p class="footer-text">Owner-Key Forensics — a <a href="https://pylon.partners" target="_blank" rel="noopener">Pylon Partners</a> / TAO Institute project. On-chain data via tao.com &amp; taostats. Internal research — not financial advice.</p></footer>
+
+<script>(function(){var t=localStorage.getItem('okf-theme');if(t)document.documentElement.setAttribute('data-theme',t)})()</script>
+<script>
+const FALLBACK = {
+ "generated_at": "2026-07-07T09:52:09Z",
+ "source": "retained: taostats account history (staked-alpha value). prices: tao.com. earned: 18% owner cut, protocol-constant ~1,296 alpha/day/subnet (no halving in window).",
+ "wallets": [
+  {
+   "name": "Mainframe",
+   "netuid": 25,
+   "owner": "5F6aRdsBHajN2NhZHBTB6ibBFu7YuZZEWruWzB8x6B6GiZ4D",
+   "runner": "Macrocosmos",
+   "owner_alpha_day": 1294.9,
+   "live_month": "2025-02",
+   "retained_now_usd": 524447.6924746785,
+   "retained_now_alpha": 636495.2746772865,
+   "retained_now_tao": 2457.896080791,
+   "total_earned_usd": 1424523.384464755,
+   "total_sold_usd": 85049.70927572818,
+   "net_kept_pct": 94.02960244786122,
+   "series": [
+    {
+     "month": "2025-02",
+     "baseline": true,
+     "earned_alpha": 20718.4,
+     "earned_tao": 170.1185304585009,
+     "earned_usd": 54019.46903410164,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
+     "retained_tao": 160.454723907,
+     "retained_usd": 50950.822147995954,
+     "retained_alpha": 19541.464077046807,
+     "alpha_usd": 2.6073185687167753,
+     "tao_usd": 317.5401814752877
+    },
+    {
+     "month": "2025-03",
+     "baseline": false,
+     "earned_alpha": 40141.9,
+     "earned_tao": 757.5987235127203,
+     "earned_usd": 168069.59494180366,
+     "sold_alpha": -4448.551777860128,
+     "sold_tao": -83.95758916212424,
+     "sold_usd": -18625.583128416747,
+     "retained_tao": 1210.362678102,
+     "retained_usd": 268513.07787065493,
+     "retained_alpha": 64131.91585490693,
+     "alpha_usd": 4.186886892294676,
+     "tao_usd": 221.84514007959746
+    },
+    {
+     "month": "2025-04",
+     "baseline": false,
+     "earned_alpha": 38847.0,
+     "earned_tao": 676.6759469002126,
+     "earned_usd": 242794.8268086642,
+     "sold_alpha": -3254.0525536559217,
+     "sold_tao": -56.68234594713042,
+     "sold_usd": -20337.918660158593,
+     "retained_tao": 1850.472224107,
+     "retained_usd": 663958.9972488817,
+     "retained_alpha": 106232.96840856285,
+     "alpha_usd": 6.250027719223214,
+     "tao_usd": 358.80516799937095
+    },
+    {
+     "month": "2025-05",
+     "baseline": false,
+     "earned_alpha": 40141.9,
+     "earned_tao": 571.4678884171911,
+     "earned_usd": 232061.52267841736,
+     "sold_alpha": -9246.427119264721,
+     "sold_tao": -131.63393315337993,
+     "sold_usd": -53453.871307326845,
+     "retained_tao": 2215.455002081,
+     "retained_usd": 899651.3568459803,
+     "retained_alpha": 155621.29552782758,
+     "alpha_usd": 5.781029863519598,
+     "tao_usd": 406.0797244813947
+    },
+    {
+     "month": "2025-06",
+     "baseline": false,
+     "earned_alpha": 38847.0,
+     "earned_tao": 357.03041115281957,
+     "earned_usd": 120190.30381740417,
+     "sold_alpha": 9993.117093067529,
+     "sold_tao": 91.84355817530746,
+     "sold_usd": 30918.108978780372,
+     "retained_tao": 1695.452642522,
+     "retained_usd": 570755.2125735232,
+     "retained_alpha": 184475.17843476005,
+     "alpha_usd": 3.0939404282802836,
+     "tao_usd": 336.638841014468
+    },
+    {
+     "month": "2025-07",
+     "baseline": false,
+     "earned_alpha": 40141.9,
+     "earned_tao": 231.32264077541635,
+     "earned_usd": 85951.20703757968,
+     "sold_alpha": 37472.132432692866,
+     "sold_tao": 215.93777648334134,
+     "sold_usd": 80234.74257227457,
+     "retained_tao": 1078.445791479,
+     "retained_usd": 400711.8247980375,
+     "retained_alpha": 187144.94600206718,
+     "alpha_usd": 2.141184324548157,
+     "tao_usd": 371.5641787136042
+    },
+    {
+     "month": "2025-08",
+     "baseline": false,
+     "earned_alpha": 40141.9,
+     "earned_tao": 169.28448174260106,
+     "earned_usd": 54817.84065580915,
+     "sold_alpha": 9867.602438228416,
+     "sold_tao": 41.613176376741606,
+     "sold_usd": 13475.213134248233,
+     "retained_tao": 916.889932155,
+     "retained_usd": 296908.05490495154,
+     "retained_alpha": 217419.24356383877,
+     "alpha_usd": 1.3656015449146441,
+     "tao_usd": 323.8208256983667
+    },
+    {
+     "month": "2025-09",
+     "baseline": false,
+     "earned_alpha": 38847.0,
+     "earned_tao": 132.30268252051957,
+     "earned_usd": 40325.40850696283,
+     "sold_alpha": 44299.959979568,
+     "sold_tao": 150.87403250826338,
+     "sold_usd": 45985.89293943378,
+     "retained_tao": 721.901509051,
+     "retained_usd": 220033.12933401414,
+     "retained_alpha": 211966.28358427077,
+     "alpha_usd": 1.0380572118043305,
+     "tao_usd": 304.79660531983944
+    },
+    {
+     "month": "2025-10",
+     "baseline": false,
+     "earned_alpha": 40141.9,
+     "earned_tao": 230.79645608917167,
+     "earned_usd": 104681.66856979321,
+     "sold_alpha": 7864.516806200125,
+     "sold_tao": 45.21715732749869,
+     "sold_usd": 20509.012821221968,
+     "retained_tao": 1404.282625252,
+     "retained_usd": 636936.3327578666,
+     "retained_alpha": 244243.66677807065,
+     "alpha_usd": 2.6077905771723113,
+     "tao_usd": 453.5670536004586
+    },
+    {
+     "month": "2025-11",
+     "baseline": false,
+     "earned_alpha": 38847.0,
+     "earned_tao": 179.12604117481362,
+     "earned_usd": 52796.33933495518,
+     "sold_alpha": 14242.638510306744,
+     "sold_tao": 65.67373161982114,
+     "sold_usd": 19356.943285588473,
+     "retained_tao": 1239.675727373,
+     "retained_usd": 365387.0757061932,
+     "retained_alpha": 268848.0282677639,
+     "alpha_usd": 1.3590840820386434,
+     "tao_usd": 294.7440751142929
+    },
+    {
+     "month": "2025-12",
+     "baseline": false,
+     "earned_alpha": 40141.9,
+     "earned_tao": 160.40583915162887,
+     "earned_usd": 35520.421465518884,
+     "sold_alpha": -37977.542240186325,
+     "sold_tao": -151.75712988058658,
+     "sold_usd": -33605.24306512558,
+     "retained_tao": 1386.471698279,
+     "retained_usd": 307021.6105183707,
+     "retained_alpha": 346967.47050795023,
+     "alpha_usd": 0.8848714551508245,
+     "tao_usd": 221.44095036304785
+    },
+    {
+     "month": "2026-01",
+     "baseline": false,
+     "earned_alpha": 40141.9,
+     "earned_tao": 206.27055576474103,
+     "earned_usd": 42254.824271162186,
+     "sold_alpha": -12033.521158690412,
+     "sold_tao": -61.83466894217368,
+     "sold_usd": -12666.92214179636,
+     "retained_tao": 2051.009695446,
+     "retained_usd": 420152.3282768734,
+     "retained_alpha": 399142.89166664064,
+     "alpha_usd": 1.0526363792237583,
+     "tao_usd": 204.8514588740204
+    },
+    {
+     "month": "2026-02",
+     "baseline": false,
+     "earned_alpha": 36257.200000000004,
+     "earned_tao": 189.5310487059461,
+     "earned_usd": 33089.65120798206,
+     "sold_alpha": -17048.270748505085,
+     "sold_tao": -89.11820641381775,
+     "sold_usd": -15558.87748550016,
+     "retained_tao": 2365.1305841,
+     "retained_usd": 412920.9785074366,
+     "retained_alpha": 452448.36241514573,
+     "alpha_usd": 0.9126366958281956,
+     "tao_usd": 174.5869683827901
+    },
+    {
+     "month": "2026-03",
+     "baseline": false,
+     "earned_alpha": 40141.9,
+     "earned_tao": 190.11415918761588,
+     "earned_usd": 58387.87472620791,
+     "sold_alpha": 24713.785178744154,
+     "sold_tao": 117.04579229185235,
+     "sold_usd": 35947.11244427711,
+     "retained_tao": 2215.887715167,
+     "retained_usd": 680543.6000841636,
+     "retained_alpha": 467876.4772364016,
+     "alpha_usd": 1.4545368985077416,
+     "tao_usd": 307.120074463193
+    },
+    {
+     "month": "2026-04",
+     "baseline": false,
+     "earned_alpha": 38847.0,
+     "earned_tao": 181.74829567794706,
+     "earned_usd": 45404.28749764681,
+     "sold_alpha": -2095.56377691729,
+     "sold_tao": -9.804235718051821,
+     "sold_usd": -2449.2902977529084,
+     "retained_tao": 2380.544019169,
+     "retained_usd": 594706.5673654509,
+     "retained_alpha": 508819.04101331887,
+     "alpha_usd": 1.1687977835520582,
+     "tao_usd": 249.81960534090481
+    },
+    {
+     "month": "2026-05",
+     "baseline": false,
+     "earned_alpha": 40141.9,
+     "earned_tao": 177.0203849321875,
+     "earned_usd": 45296.67587794127,
+     "sold_alpha": 5524.158568729101,
+     "sold_tao": 24.360796979287663,
+     "sold_usd": 6233.537032030722,
+     "retained_tao": 2396.483186263,
+     "retained_usd": 613221.5912685713,
+     "retained_alpha": 543436.7824445898,
+     "alpha_usd": 1.1284138488198434,
+     "tao_usd": 255.88395311248132
+    },
+    {
+     "month": "2026-06",
+     "baseline": false,
+     "earned_alpha": 38847.0,
+     "earned_tao": 146.18161460592387,
+     "earned_usd": 29805.551177791454,
+     "sold_alpha": -11985.46195596247,
+     "sold_tao": -45.10140243829557,
+     "sold_usd": -9195.904438384221,
+     "retained_tao": 2236.240576032,
+     "retained_usd": 455955.9908710612,
+     "retained_alpha": 594269.2444005522,
+     "alpha_usd": 0.7672549019947861,
+     "tao_usd": 203.8939798150486
+    },
+    {
+     "month": "2026-07",
+     "baseline": false,
+     "earned_alpha": 40141.9,
+     "earned_tao": 155.01233490779455,
+     "earned_usd": 33075.38588911469,
+     "sold_alpha": -2084.130276734264,
+     "sold_tao": -8.048096887506727,
+     "sold_usd": -1717.243407665635,
+     "retained_tao": 2457.896080791,
+     "retained_usd": 524447.6924746785,
+     "retained_alpha": 636495.2746772865,
+     "alpha_usd": 0.8239616432982665,
+     "tao_usd": 213.3726061786554
+    }
+   ],
+   "conviction": {
+    "available": true,
+    "total_locked_alpha": 323519.372769362,
+    "owner_locked_alpha": 0.0,
+    "external_locked_alpha": 323519.372769362,
+    "lock_count": 2
+   }
+  },
+  {
+   "name": "Vanta",
+   "netuid": 8,
+   "owner": "5F6tnxzAAxbhaWRmeUmB63JEM3VXBNSmqb3AwYJVDStQjw8y",
+   "runner": "Taoshi",
+   "owner_alpha_day": 1296.0,
+   "live_month": "2025-02",
+   "retained_now_usd": 5648145.005436551,
+   "retained_now_alpha": 874637.2997362089,
+   "retained_now_tao": 26470.806663473,
+   "total_earned_usd": 9947407.421004692,
+   "total_sold_usd": -2424293.4209308703,
+   "net_kept_pct": 124.37110815237942,
+   "series": [
+    {
+     "month": "2025-02",
+     "baseline": true,
+     "earned_alpha": 20736.0,
+     "earned_tao": 2648.62375399008,
+     "earned_usd": 841044.4675017677,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
+     "retained_tao": 2675.905296765,
+     "retained_usd": 849707.4535454416,
+     "retained_alpha": 20949.586422053533,
+     "alpha_usd": 40.55962902689852,
+     "tao_usd": 317.5401814752877
+    },
+    {
+     "month": "2025-03",
+     "baseline": false,
+     "earned_alpha": 40176.0,
+     "earned_tao": 5020.95929324454,
+     "earned_usd": 1113875.4177437916,
+     "sold_alpha": -5972.679852739937,
+     "sold_tao": -746.4302671293563,
+     "sold_usd": -165591.9271709634,
+     "retained_tao": 8385.545191483,
+     "retained_usd": 1860292.4476483408,
+     "retained_alpha": 67098.26627479347,
+     "alpha_usd": 27.72489590162763,
+     "tao_usd": 221.84514007959746
+    },
+    {
+     "month": "2025-04",
+     "baseline": false,
+     "earned_alpha": 38880.0,
+     "earned_tao": 5906.782979551799,
+     "earned_usd": 2119384.2593139084,
+     "sold_alpha": -1491.8811228281847,
+     "sold_tao": -226.65169814393388,
+     "sold_usd": -81323.8006298769,
+     "retained_tao": 16327.233473719,
+     "retained_usd": 5858295.749502699,
+     "retained_alpha": 107470.14739762165,
+     "alpha_usd": 54.510912019390645,
+     "tao_usd": 358.80516799937095
+    },
+    {
+     "month": "2025-05",
+     "baseline": false,
+     "earned_alpha": 40176.0,
+     "earned_tao": 2398.95120296592,
+     "earned_usd": 974165.4435447112,
+     "sold_alpha": 3173.4499746214133,
+     "sold_tao": 189.4900347015683,
+     "sold_usd": 76948.06108358278,
+     "retained_tao": 8626.616668624,
+     "retained_usd": 3503094.1200014404,
+     "retained_alpha": 144472.69742300024,
+     "alpha_usd": 24.247447320407986,
+     "tao_usd": 406.0797244813947
+    },
+    {
+     "month": "2025-06",
+     "baseline": false,
+     "earned_alpha": 38880.0,
+     "earned_tao": 1890.5783523174002,
+     "earned_usd": 636442.1053711721,
+     "sold_alpha": -15168.121831927216,
+     "sold_tao": -737.5648863362793,
+     "sold_usd": -248292.98850921288,
+     "retained_tao": 9653.270662749,
+     "retained_usd": 3249665.8479067893,
+     "retained_alpha": 198520.81925492745,
+     "alpha_usd": 16.36939571427912,
+     "tao_usd": 336.638841014468
+    },
+    {
+     "month": "2025-07",
+     "baseline": false,
+     "earned_alpha": 40176.0,
+     "earned_tao": 1864.98246439242,
+     "earned_usd": 692960.6776972432,
+     "sold_alpha": -15850.020504637621,
+     "sold_tao": -735.7629007718405,
+     "sold_usd": -273383.13795322797,
+     "retained_tao": 11816.143780319,
+     "retained_usd": 4390455.759296091,
+     "retained_alpha": 254546.83975956507,
+     "alpha_usd": 17.24812519158809,
+     "tao_usd": 371.5641787136042
+    },
+    {
+     "month": "2025-08",
+     "baseline": false,
+     "earned_alpha": 40176.0,
+     "earned_tao": 1573.12068134922,
+     "earned_usd": 509409.23795768165,
+     "sold_alpha": -16347.308108589088,
+     "sold_tao": -640.090812176655,
+     "sold_usd": -207274.7353209826,
+     "retained_tao": 12180.179285189,
+     "retained_usd": 3944195.713284044,
+     "retained_alpha": 311070.14786815416,
+     "alpha_usd": 12.67944140675233,
+     "tao_usd": 323.8208256983667
+    },
+    {
+     "month": "2025-09",
+     "baseline": false,
+     "earned_alpha": 38880.0,
+     "earned_tao": 1288.7005305491998,
+     "earned_usd": 392791.5469852722,
+     "sold_alpha": -33122.84766611579,
+     "sold_tao": -1097.8763210036973,
+     "sold_usd": -334628.97570296127,
+     "retained_tao": 12697.180364817,
+     "retained_usd": 3870057.4723299425,
+     "retained_alpha": 383072.99553426995,
+     "alpha_usd": 10.102663245505973,
+     "tao_usd": 304.79660531983944
+    },
+    {
+     "month": "2025-10",
+     "baseline": false,
+     "earned_alpha": 40176.0,
+     "earned_tao": 1162.3719097789087,
+     "earned_usd": 527213.6023063577,
+     "sold_alpha": -26068.373249124736,
+     "sold_tao": -754.2100955399874,
+     "sold_usd": -342084.85082979244,
+     "retained_tao": 12999.648746754,
+     "retained_usd": 5896212.379906106,
+     "retained_alpha": 449317.3687833947,
+     "alpha_usd": 13.122600614953148,
+     "tao_usd": 453.5670536004586
+    },
+    {
+     "month": "2025-11",
+     "baseline": false,
+     "earned_alpha": 38880.0,
+     "earned_tao": 1390.9458833972976,
+     "earned_usd": 409973.0579359696,
+     "sold_alpha": -13517.080136523466,
+     "sold_tao": -483.57836860721955,
+     "sold_usd": -142531.85900041356,
+     "retained_tao": 17949.013563943,
+     "retained_usd": 5290365.402118278,
+     "retained_alpha": 501714.44891991816,
+     "alpha_usd": 10.544574535390165,
+     "tao_usd": 294.7440751142929
+    },
+    {
+     "month": "2025-12",
+     "baseline": false,
+     "earned_alpha": 40176.0,
+     "earned_tao": 1737.4821891671954,
+     "earned_usd": 384749.7072080526,
+     "sold_alpha": -19744.320135044865,
+     "sold_tao": -853.8780508725529,
+     "sold_usd": -189083.56707936502,
+     "retained_tao": 24288.889089258,
+     "retained_usd": 5378554.683187955,
+     "retained_alpha": 561634.769054963,
+     "alpha_usd": 9.576605615493145,
+     "tao_usd": 221.44095036304785
+    },
+    {
+     "month": "2026-01",
+     "baseline": false,
+     "earned_alpha": 40176.0,
+     "earned_tao": 1746.8542981401126,
+     "earned_usd": 357845.6514143551,
+     "sold_alpha": -30914.669144722982,
+     "sold_tao": -1344.1712134368495,
+     "sold_usd": -275355.43404900085,
+     "retained_tao": 27510.930686522,
+     "retained_usd": 5635654.286116087,
+     "retained_alpha": 632725.438199686,
+     "alpha_usd": 8.906950702268894,
+     "tao_usd": 204.8514588740204
+    },
+    {
+     "month": "2026-02",
+     "baseline": false,
+     "earned_alpha": 36288.0,
+     "earned_tao": 1454.604841184912,
+     "earned_usd": 253955.04941740367,
+     "sold_alpha": 3773.8739720176673,
+     "sold_tao": 151.2757757307824,
+     "sold_usd": 26410.779074592156,
+     "retained_tao": 26666.134553387,
+     "retained_usd": 4655559.590163403,
+     "retained_alpha": 665239.5642276683,
+     "alpha_usd": 6.998320365338505,
+     "tao_usd": 174.5869683827901
+    },
+    {
+     "month": "2026-03",
+     "baseline": false,
+     "earned_alpha": 40176.0,
+     "earned_tao": 1343.5923174000334,
+     "earned_usd": 412644.1725680723,
+     "sold_alpha": -30821.076937321457,
+     "sold_tao": -1030.7388039371879,
+     "sold_usd": -316560.5782172916,
+     "retained_tao": 24621.711839349,
+     "retained_usd": 7561821.973512146,
+     "retained_alpha": 736236.6411649898,
+     "alpha_usd": 10.270912300081449,
+     "tao_usd": 307.120074463193
+    },
+    {
+     "month": "2026-04",
+     "baseline": false,
+     "earned_alpha": 38880.0,
+     "earned_tao": 1375.7319822343286,
+     "earned_usd": 343684.82085664064,
+     "sold_alpha": -23462.065939483815,
+     "sold_tao": -830.1829856542847,
+     "sold_usd": -207395.98583688747,
+     "retained_tao": 28256.951329603,
+     "retained_usd": 7059140.429298578,
+     "retained_alpha": 798578.7071044736,
+     "alpha_usd": 8.83963016606586,
+     "tao_usd": 249.81960534090481
+    },
+    {
+     "month": "2026-05",
+     "baseline": false,
+     "earned_alpha": 40176.0,
+     "earned_tao": 1237.17971786328,
+     "earned_usd": 316574.43691744044,
+     "sold_alpha": -12835.339922143146,
+     "sold_tao": -395.2514492123744,
+     "sold_usd": -101138.5032978995,
+     "retained_tao": 26223.863354131,
+     "retained_usd": 6710265.820936575,
+     "retained_alpha": 851590.0470266168,
+     "alpha_usd": 7.879690285679023,
+     "tao_usd": 255.88395311248132
+    },
+    {
+     "month": "2026-06",
+     "baseline": false,
+     "earned_alpha": 38880.0,
+     "earned_tao": 1188.3317588922478,
+     "earned_usd": 242293.69166115715,
+     "sold_alpha": 20780.399730308447,
+     "sold_tao": 635.133975360119,
+     "sold_usd": 129499.99395192768,
+     "retained_tao": 26581.271303035,
+     "retained_usd": 5419761.194519348,
+     "retained_alpha": 869689.6472963083,
+     "alpha_usd": 6.231833633260215,
+     "tao_usd": 203.8939798150486
+    },
+    {
+     "month": "2026-07",
+     "baseline": false,
+     "earned_alpha": 40176.0,
+     "earned_tao": 1215.92245017728,
+     "earned_usd": 259444.5421054625,
+     "sold_alpha": 35228.34756009944,
+     "sold_tao": 1066.1822650580675,
+     "sold_usd": 227494.0885569018,
+     "retained_tao": 26470.806663473,
+     "retained_usd": 5648145.005436551,
+     "retained_alpha": 874637.2997362089,
+     "alpha_usd": 6.457699674070652,
+     "tao_usd": 213.3726061786554
+    }
+   ],
+   "conviction": {
+    "available": true,
+    "total_locked_alpha": 7573.387584155,
+    "owner_locked_alpha": 0.0,
+    "external_locked_alpha": 7573.387584155,
+    "lock_count": 2
+   }
+  }
+ ]
+};
+function toggleTheme(){var t=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('okf-theme',t)}
+const usdC=n=>{const a=Math.abs(n);const s=n<0?'-':'';return a>=1e6?s+'$'+(a/1e6).toFixed(2)+'M':a>=1e3?s+'$'+(a/1e3).toFixed(0)+'k':s+'$'+a.toFixed(0)};
+const num=(n,d=0)=>Number(n).toLocaleString('en-US',{maximumFractionDigits:d,minimumFractionDigits:d});
+const taoC=n=>num(n,0)+' τ';
+const shortAddr=a=>a.slice(0,6)+'…'+a.slice(-4);
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+function divergeBars(series){
+  // net sold per month in USD: positive=sold(red, up), negative=accumulated(green, down)
+  const W=560,H=210,padL=44,padB=26,padT=14;
+  const data=series.filter(s=>!s.baseline);
+  const vals=data.map(s=>s.sold_usd);
+  const max=Math.max(1,...vals.map(Math.abs));
+  const n=data.length, bw=(W-padL-8)/n*0.68, gap=(W-padL-8)/n;
+  const zeroY=padT+(H-padT-padB)/2, half=(H-padT-padB)/2;
+  let bars='',lbl='';
+  data.forEach((s,i)=>{
+    const x=padL+i*gap+gap*0.16;
+    const h=Math.abs(s.sold_usd)/max*half*0.92;
+    const up=s.sold_usd>=0;
+    const y=up?zeroY-h:zeroY;
+    const col=up?'var(--red)':'var(--accent)';
+    bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="${col}"><title>${s.month}: ${up?'sold':'accumulated'} ${usdC(Math.abs(s.sold_usd))}</title></rect>`;
+    if(i%3===0||i===n-1) lbl+=`<text x="${(x+bw/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="8" fill="var(--text-muted)">${s.month.slice(2)}</text>`;
+  });
+  const g=[max/2,max].map(v=>{const y=zeroY-v/max*half*0.92;const y2=zeroY+v/max*half*0.92;return `<text x="${padL-6}" y="${y+3}" text-anchor="end" font-size="8" fill="var(--text-muted)">${usdC(v)}</text><text x="${padL-6}" y="${y2+3}" text-anchor="end" font-size="8" fill="var(--text-muted)">${usdC(v)}</text>`}).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"><line x1="${padL}" y1="${zeroY}" x2="${W-4}" y2="${zeroY}" stroke="var(--border-hover)" stroke-width="1"/>${g}${bars}${lbl}<text x="${padL-6}" y="${zeroY+3}" text-anchor="end" font-size="8" fill="var(--text-muted)">0</text></svg>`;
+}
+function areaLine(series,key,color){
+  const W=440,H=210,padL=46,padB=26,padT=14;
+  const data=series;const vals=data.map(s=>s[key]);
+  const max=Math.max(1,...vals),min=0;
+  const n=data.length,iw=(W-padL-8);
+  const X=i=>padL+(n<2?0:i/(n-1)*iw);
+  const Y=v=>padT+(1-(v-min)/(max-min))*(H-padT-padB);
+  let d='',ar='';
+  data.forEach((s,i)=>{const x=X(i),y=Y(s[key]);d+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' ';});
+  ar=`M${X(0).toFixed(1)} ${Y(0).toFixed(1)} `+data.map((s,i)=>'L'+X(i).toFixed(1)+' '+Y(s[key]).toFixed(1)).join(' ')+` L${X(n-1).toFixed(1)} ${Y(0).toFixed(1)} Z`;
+  const g=[max,max/2,0].map(v=>`<text x="${padL-6}" y="${(Y(v)+3).toFixed(1)}" text-anchor="end" font-size="8" fill="var(--text-muted)">${usdC(v)}</text><line x1="${padL}" y1="${Y(v).toFixed(1)}" x2="${W-4}" y2="${Y(v).toFixed(1)}" stroke="var(--border)" stroke-width="1"/>`).join('');
+  let lbl='';data.forEach((s,i)=>{if(i%3===0||i===n-1)lbl+=`<text x="${X(i).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="8" fill="var(--text-muted)">${s.month.slice(2)}</text>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${g}<path d="${ar}" fill="${color}" opacity="0.13"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2"/>${lbl}</svg>`;
+}
+
+function walletHTML(w){
+  const c=w.conviction||{};
+  const lockedPct = c.available && w.retained_now_alpha ? Math.min(100, (c.owner_locked_alpha/w.retained_now_alpha*100)) : 0;
+  const rows=w.series.map(s=>{
+    const scls=s.sold_usd>=0?'pos':'neg';
+    return `<tr class="${s.baseline?'base':''}"><td>${s.month}</td>
+      <td>${num(s.earned_alpha,0)}</td><td>${taoC(s.earned_tao)}</td><td>${usdC(s.earned_usd)}</td>
+      <td class="${s.baseline?'':scls}">${s.baseline?'—':(s.sold_usd>=0?usdC(s.sold_usd):'('+usdC(-s.sold_usd)+')')}</td>
+      <td>${usdC(s.retained_usd)}</td></tr>`;
+  }).join('');
+  return `<section class="wsec" id="w-${w.netuid}">
+    <div class="wtitle"><h2>${w.name}</h2><span class="wuid">SN${w.netuid}</span></div>
+    <div class="wmeta">Owner coldkey <a href="https://taostats.io/account/${w.owner}" target="_blank" rel="noopener">${shortAddr(w.owner)} ↗</a> · run by ${w.runner} · live since ${w.live_month} · owner cut ≈ ${num(w.owner_alpha_day,0)} α/day</div>
+    <div class="statband">
+      <div class="sb"><div class="sb-label">Owner emission earned</div><div class="sb-val up">${usdC(w.total_earned_usd)}</div><div class="sb-sub">since ${w.live_month}</div></div>
+      <div class="sb"><div class="sb-label">Net sold → TAO</div><div class="sb-val ${w.total_sold_usd>=0?'down':'up'}">${w.total_sold_usd>=0?usdC(w.total_sold_usd):'('+usdC(-w.total_sold_usd)+')'}</div><div class="sb-sub">${w.total_sold_usd<0?'net accumulated':'realised to TAO'}</div></div>
+      <div class="sb"><div class="sb-label">% of emission kept</div><div class="sb-val">${num(w.net_kept_pct,0)}%</div><div class="sb-sub">${w.net_kept_pct>=100?'grew the stack':'held most of it'}</div></div>
+      <div class="sb"><div class="sb-label">Retained now</div><div class="sb-val">${usdC(w.retained_now_usd)}</div><div class="sb-sub">${num(w.retained_now_alpha,0)} α · ${taoC(w.retained_now_tao)}</div></div>
+      <div class="sb"><div class="sb-label">Owner conviction-lock</div><div class="sb-val">${num(lockedPct,0)}%</div><div class="sb-sub">fully liquid</div></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h3>Sold vs accumulated, by month</h3><div class="cap">USD · <span class="down">red = α unstaked to TAO</span>, <span class="up">green = accumulated</span> (below zero)</div>${divergeBars(w.series)}</div>
+      <div class="panel"><h3>Retained in wallet</h3><div class="cap">USD value of owner's staked α, month-end</div>${areaLine(w.series,'retained_usd',css('--accent'))}</div>
+    </div>
+    <div class="panel" style="margin-bottom:1.4rem">
+      <h3>Conviction — locked vs unlocked (live)</h3>
+      <div class="convbar"><i style="width:${100-lockedPct}%;background:var(--accent)"></i><i style="width:${lockedPct}%;background:var(--gold)"></i></div>
+      <div class="conv">The owner's ${num(w.retained_now_alpha,0)} α retained position is <b>${num(100-lockedPct,0)}% unlocked</b> (liquid). ${c.available?`External conviction locks to the SN${w.netuid} owner hotkey total <b>${num(c.external_locked_alpha,0)} α</b> across ${c.lock_count} lock${c.lock_count===1?'':'s'} — held by other wallets, not the owner.`:'Conviction data unavailable.'}</div>
+    </div>
+    <h3 style="font-size:.9rem;margin-bottom:.6rem">Monthly detail — α, TAO &amp; USD</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Month</th><th>Earned α</th><th>Earned TAO</th><th>Earned USD</th><th>Sold (USD)</th><th>Retained USD</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+  </section>`;
+}
+
+function render(d,live){
+  const dot=document.getElementById('dot'),st=document.getElementById('statusTxt');
+  const t=new Date(d.generated_at).toISOString().replace('T',' ').replace(/:\d\dZ/,'Z');
+  if(live){dot.className='dot';st.textContent='LIVE · '+t;}else{dot.className='dot snap';st.textContent='SNAPSHOT · '+t;}
+  document.getElementById('src').textContent='Source: '+d.source;
+  document.getElementById('wallets').innerHTML=d.wallets.map(walletHTML).join('');
+  document.getElementById('navWallets').innerHTML=d.wallets.map(w=>`<a class="nav-link" href="#w-${w.netuid}">${w.name} SN${w.netuid}</a>`).join('')
+    +'<button class="rbtn" onclick="manualRefresh()">↻ Refresh</button><button class="theme-toggle" onclick="toggleTheme()">&#9728;</button>';
+}
+function manualRefresh(){var s=document.getElementById('statusTxt');if(s)s.textContent='refreshing…';loadData();}
+function loadData(){
+  try{
+    if(typeof fetch!=='function'){render(FALLBACK,false);return;}
+    fetch('./forensics_data.json?t='+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>render(d,true)).catch(()=>render(FALLBACK,false));
+  }catch(e){render(FALLBACK,false);}
+}
+loadData();
+</script>
+</body>
+</html>
