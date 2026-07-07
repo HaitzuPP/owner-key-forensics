@@ -97,7 +97,7 @@ Owner-Key Forensics
 <h3>How this is measured</h3>
 <p><b>Owner emission (earned).</b> Every subnet emits ~7,200 α/day into its pool (≈1 α/block; no halving occurred in this window — next halving 2030), and the subnet owner receives the protocol <b>18% owner cut</b> ≈ 1,296 α/day. Earned is that constant α flow, valued at each month's alpha price (TAO & USD). This converges with the "0.18 × monthly change in subnet total-alpha" method used elsewhere.</p>
 <p><b>Retained.</b> The owner coldkey's total staked-alpha value across all its hotkeys, from taostats account history (<code>balance_staked_alpha_as_tao</code>), converted to α at each month's price. Each series begins the month the owner wallet first held staked alpha (dTAO era, Feb 2025+).</p>
-<p><b>Sold.</b> Each month, earned minus the change in retained (in α), <b>floored at zero</b> — a month only counts as a sale when the retained position fell below the emission it received. Read as <b>α unstaked → swapped to TAO through the pool</b>, valued at that month's price; not a coldkey transfer and not confirmed as a fiat exit. Months where the stake grew as fast as the owner cut or faster show <b>$0 sold</b> — that's accumulation, visible as the rising Retained line. First live month is a baseline.</p>
+<p><b>Sold.</b> Actual on-chain <code>remove_stake</code> events where the owner coldkey unstaked alpha and received TAO, summed per month and valued at the TAO actually received (tao.com transactions). This is <b>gross realised selling</b> — not netted against buys or rewards — so a month with real unstakes shows <b>+$ in red</b> even if the overall position still grew. <b>$0</b> = no unstaking that month. Proceeds are swapped alpha→TAO through the pool, not confirmed as a fiat exit (often redeployed). First live month is a baseline.</p>
 <p><b>Conviction.</b> Live conviction-locks on the subnet from taostats. Both owners currently hold <b>0% of their own stake conviction-locked</b> — their retained is fully liquid; the locks shown are external wallets locking to the owner hotkey.</p>
 <p style="color:var(--text-muted)">Prices via tao.com Data API; balances & conviction via taostats. Owner emission uses the protocol-constant α rate rather than reconstructing daily total-alpha. Realised USD is timing-dependent as alpha prices moved. Verify against taostats before external use.</p>
 </section>
@@ -792,7 +792,7 @@ function walletHTML(w){
       <div class="sb"><div class="sb-label">Owner conviction-lock</div><div class="sb-val">${num(lockedPct,0)}%</div><div class="sb-sub">fully liquid</div></div>
     </div>
     <div class="grid2">
-      <div class="panel"><h3>Sold to TAO, by month</h3><div class="cap">USD realised from α unstaked to TAO · $0 in accumulation months</div>${divergeBars(w.series)}</div>
+      <div class="panel"><h3>Sold to TAO, by month</h3><div class="cap">USD received from on-chain unstakes (remove_stake → TAO) · $0 = no sells that month</div>${divergeBars(w.series)}</div>
       <div class="panel"><h3>Retained in wallet</h3><div class="cap">USD value of owner's staked α, month-end</div>${areaLine(w.series,'retained_usd',css('--accent'))}</div>
     </div>
     <div class="panel" style="margin-bottom:1.4rem">
