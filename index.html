@@ -97,7 +97,7 @@ Owner-Key Forensics
 <h3>How this is measured</h3>
 <p><b>Owner emission (earned).</b> Every subnet emits ~7,200 α/day into its pool (≈1 α/block; no halving occurred in this window — next halving 2030), and the subnet owner receives the protocol <b>18% owner cut</b> ≈ 1,296 α/day. Earned is that constant α flow, valued at each month's alpha price (TAO & USD). This converges with the "0.18 × monthly change in subnet total-alpha" method used elsewhere.</p>
 <p><b>Retained.</b> The owner coldkey's total staked-alpha value across all its hotkeys, from taostats account history (<code>balance_staked_alpha_as_tao</code>), converted to α at each month's price. Each series begins the month the owner wallet first held staked alpha (dTAO era, Feb 2025+).</p>
-<p><b>Sold.</b> Earned − change in retained (in α). A <span class="neg">negative "sold" (green)</span> means the position grew faster than the owner cut — validator rewards / re-staking / buying = <b>accumulation, not a sale</b>. Read "sold" as <b>α unstaked → swapped to TAO through the pool</b>, not a coldkey transfer, and not confirmed as a fiat exit. The first live month is a baseline (position established, not a sale).</p>
+<p><b>Sold.</b> Each month, earned minus the change in retained (in α), <b>floored at zero</b> — a month only counts as a sale when the retained position fell below the emission it received. Read as <b>α unstaked → swapped to TAO through the pool</b>, valued at that month's price; not a coldkey transfer and not confirmed as a fiat exit. Months where the stake grew as fast as the owner cut or faster show <b>$0 sold</b> — that's accumulation, visible as the rising Retained line. First live month is a baseline.</p>
 <p><b>Conviction.</b> Live conviction-locks on the subnet from taostats. Both owners currently hold <b>0% of their own stake conviction-locked</b> — their retained is fully liquid; the locks shown are external wallets locking to the owner hotkey.</p>
 <p style="color:var(--text-muted)">Prices via tao.com Data API; balances & conviction via taostats. Owner emission uses the protocol-constant α rate rather than reconstructing daily total-alpha. Realised USD is timing-dependent as alpha prices moved. Verify against taostats before external use.</p>
 </section>
@@ -122,8 +122,8 @@ const FALLBACK = {
    "retained_now_alpha": 636495.2746772865,
    "retained_now_tao": 2457.896080791,
    "total_earned_usd": 1424523.384464755,
-   "total_sold_usd": 85049.70927572818,
-   "net_kept_pct": 94.02960244786122,
+   "total_sold_usd": 252660.56320785524,
+   "net_kept_pct": 82.26350188678798,
    "series": [
     {
      "month": "2025-02",
@@ -146,9 +146,9 @@ const FALLBACK = {
      "earned_alpha": 40141.9,
      "earned_tao": 757.5987235127203,
      "earned_usd": 168069.59494180366,
-     "sold_alpha": -4448.551777860128,
-     "sold_tao": -83.95758916212424,
-     "sold_usd": -18625.583128416747,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 1210.362678102,
      "retained_usd": 268513.07787065493,
      "retained_alpha": 64131.91585490693,
@@ -161,9 +161,9 @@ const FALLBACK = {
      "earned_alpha": 38847.0,
      "earned_tao": 676.6759469002126,
      "earned_usd": 242794.8268086642,
-     "sold_alpha": -3254.0525536559217,
-     "sold_tao": -56.68234594713042,
-     "sold_usd": -20337.918660158593,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 1850.472224107,
      "retained_usd": 663958.9972488817,
      "retained_alpha": 106232.96840856285,
@@ -176,9 +176,9 @@ const FALLBACK = {
      "earned_alpha": 40141.9,
      "earned_tao": 571.4678884171911,
      "earned_usd": 232061.52267841736,
-     "sold_alpha": -9246.427119264721,
-     "sold_tao": -131.63393315337993,
-     "sold_usd": -53453.871307326845,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 2215.455002081,
      "retained_usd": 899651.3568459803,
      "retained_alpha": 155621.29552782758,
@@ -281,9 +281,9 @@ const FALLBACK = {
      "earned_alpha": 40141.9,
      "earned_tao": 160.40583915162887,
      "earned_usd": 35520.421465518884,
-     "sold_alpha": -37977.542240186325,
-     "sold_tao": -151.75712988058658,
-     "sold_usd": -33605.24306512558,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 1386.471698279,
      "retained_usd": 307021.6105183707,
      "retained_alpha": 346967.47050795023,
@@ -296,9 +296,9 @@ const FALLBACK = {
      "earned_alpha": 40141.9,
      "earned_tao": 206.27055576474103,
      "earned_usd": 42254.824271162186,
-     "sold_alpha": -12033.521158690412,
-     "sold_tao": -61.83466894217368,
-     "sold_usd": -12666.92214179636,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 2051.009695446,
      "retained_usd": 420152.3282768734,
      "retained_alpha": 399142.89166664064,
@@ -311,9 +311,9 @@ const FALLBACK = {
      "earned_alpha": 36257.200000000004,
      "earned_tao": 189.5310487059461,
      "earned_usd": 33089.65120798206,
-     "sold_alpha": -17048.270748505085,
-     "sold_tao": -89.11820641381775,
-     "sold_usd": -15558.87748550016,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 2365.1305841,
      "retained_usd": 412920.9785074366,
      "retained_alpha": 452448.36241514573,
@@ -341,9 +341,9 @@ const FALLBACK = {
      "earned_alpha": 38847.0,
      "earned_tao": 181.74829567794706,
      "earned_usd": 45404.28749764681,
-     "sold_alpha": -2095.56377691729,
-     "sold_tao": -9.804235718051821,
-     "sold_usd": -2449.2902977529084,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 2380.544019169,
      "retained_usd": 594706.5673654509,
      "retained_alpha": 508819.04101331887,
@@ -371,9 +371,9 @@ const FALLBACK = {
      "earned_alpha": 38847.0,
      "earned_tao": 146.18161460592387,
      "earned_usd": 29805.551177791454,
-     "sold_alpha": -11985.46195596247,
-     "sold_tao": -45.10140243829557,
-     "sold_usd": -9195.904438384221,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 2236.240576032,
      "retained_usd": 455955.9908710612,
      "retained_alpha": 594269.2444005522,
@@ -386,9 +386,9 @@ const FALLBACK = {
      "earned_alpha": 40141.9,
      "earned_tao": 155.01233490779455,
      "earned_usd": 33075.38588911469,
-     "sold_alpha": -2084.130276734264,
-     "sold_tao": -8.048096887506727,
-     "sold_usd": -1717.243407665635,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 2457.896080791,
      "retained_usd": 524447.6924746785,
      "retained_alpha": 636495.2746772865,
@@ -415,8 +415,8 @@ const FALLBACK = {
    "retained_now_alpha": 874637.2997362089,
    "retained_now_tao": 26470.806663473,
    "total_earned_usd": 9947407.421004692,
-   "total_sold_usd": -2424293.4209308703,
-   "net_kept_pct": 124.37110815237942,
+   "total_sold_usd": 460352.9226670044,
+   "net_kept_pct": 95.37213161999443,
    "series": [
     {
      "month": "2025-02",
@@ -439,9 +439,9 @@ const FALLBACK = {
      "earned_alpha": 40176.0,
      "earned_tao": 5020.95929324454,
      "earned_usd": 1113875.4177437916,
-     "sold_alpha": -5972.679852739937,
-     "sold_tao": -746.4302671293563,
-     "sold_usd": -165591.9271709634,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 8385.545191483,
      "retained_usd": 1860292.4476483408,
      "retained_alpha": 67098.26627479347,
@@ -454,9 +454,9 @@ const FALLBACK = {
      "earned_alpha": 38880.0,
      "earned_tao": 5906.782979551799,
      "earned_usd": 2119384.2593139084,
-     "sold_alpha": -1491.8811228281847,
-     "sold_tao": -226.65169814393388,
-     "sold_usd": -81323.8006298769,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 16327.233473719,
      "retained_usd": 5858295.749502699,
      "retained_alpha": 107470.14739762165,
@@ -470,7 +470,7 @@ const FALLBACK = {
      "earned_tao": 2398.95120296592,
      "earned_usd": 974165.4435447112,
      "sold_alpha": 3173.4499746214133,
-     "sold_tao": 189.4900347015683,
+     "sold_tao": 189.49003470156828,
      "sold_usd": 76948.06108358278,
      "retained_tao": 8626.616668624,
      "retained_usd": 3503094.1200014404,
@@ -484,9 +484,9 @@ const FALLBACK = {
      "earned_alpha": 38880.0,
      "earned_tao": 1890.5783523174002,
      "earned_usd": 636442.1053711721,
-     "sold_alpha": -15168.121831927216,
-     "sold_tao": -737.5648863362793,
-     "sold_usd": -248292.98850921288,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 9653.270662749,
      "retained_usd": 3249665.8479067893,
      "retained_alpha": 198520.81925492745,
@@ -499,9 +499,9 @@ const FALLBACK = {
      "earned_alpha": 40176.0,
      "earned_tao": 1864.98246439242,
      "earned_usd": 692960.6776972432,
-     "sold_alpha": -15850.020504637621,
-     "sold_tao": -735.7629007718405,
-     "sold_usd": -273383.13795322797,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 11816.143780319,
      "retained_usd": 4390455.759296091,
      "retained_alpha": 254546.83975956507,
@@ -514,9 +514,9 @@ const FALLBACK = {
      "earned_alpha": 40176.0,
      "earned_tao": 1573.12068134922,
      "earned_usd": 509409.23795768165,
-     "sold_alpha": -16347.308108589088,
-     "sold_tao": -640.090812176655,
-     "sold_usd": -207274.7353209826,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 12180.179285189,
      "retained_usd": 3944195.713284044,
      "retained_alpha": 311070.14786815416,
@@ -529,9 +529,9 @@ const FALLBACK = {
      "earned_alpha": 38880.0,
      "earned_tao": 1288.7005305491998,
      "earned_usd": 392791.5469852722,
-     "sold_alpha": -33122.84766611579,
-     "sold_tao": -1097.8763210036973,
-     "sold_usd": -334628.97570296127,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 12697.180364817,
      "retained_usd": 3870057.4723299425,
      "retained_alpha": 383072.99553426995,
@@ -544,9 +544,9 @@ const FALLBACK = {
      "earned_alpha": 40176.0,
      "earned_tao": 1162.3719097789087,
      "earned_usd": 527213.6023063577,
-     "sold_alpha": -26068.373249124736,
-     "sold_tao": -754.2100955399874,
-     "sold_usd": -342084.85082979244,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 12999.648746754,
      "retained_usd": 5896212.379906106,
      "retained_alpha": 449317.3687833947,
@@ -559,9 +559,9 @@ const FALLBACK = {
      "earned_alpha": 38880.0,
      "earned_tao": 1390.9458833972976,
      "earned_usd": 409973.0579359696,
-     "sold_alpha": -13517.080136523466,
-     "sold_tao": -483.57836860721955,
-     "sold_usd": -142531.85900041356,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 17949.013563943,
      "retained_usd": 5290365.402118278,
      "retained_alpha": 501714.44891991816,
@@ -574,9 +574,9 @@ const FALLBACK = {
      "earned_alpha": 40176.0,
      "earned_tao": 1737.4821891671954,
      "earned_usd": 384749.7072080526,
-     "sold_alpha": -19744.320135044865,
-     "sold_tao": -853.8780508725529,
-     "sold_usd": -189083.56707936502,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 24288.889089258,
      "retained_usd": 5378554.683187955,
      "retained_alpha": 561634.769054963,
@@ -589,9 +589,9 @@ const FALLBACK = {
      "earned_alpha": 40176.0,
      "earned_tao": 1746.8542981401126,
      "earned_usd": 357845.6514143551,
-     "sold_alpha": -30914.669144722982,
-     "sold_tao": -1344.1712134368495,
-     "sold_usd": -275355.43404900085,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 27510.930686522,
      "retained_usd": 5635654.286116087,
      "retained_alpha": 632725.438199686,
@@ -619,9 +619,9 @@ const FALLBACK = {
      "earned_alpha": 40176.0,
      "earned_tao": 1343.5923174000334,
      "earned_usd": 412644.1725680723,
-     "sold_alpha": -30821.076937321457,
-     "sold_tao": -1030.7388039371879,
-     "sold_usd": -316560.5782172916,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 24621.711839349,
      "retained_usd": 7561821.973512146,
      "retained_alpha": 736236.6411649898,
@@ -634,9 +634,9 @@ const FALLBACK = {
      "earned_alpha": 38880.0,
      "earned_tao": 1375.7319822343286,
      "earned_usd": 343684.82085664064,
-     "sold_alpha": -23462.065939483815,
-     "sold_tao": -830.1829856542847,
-     "sold_usd": -207395.98583688747,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 28256.951329603,
      "retained_usd": 7059140.429298578,
      "retained_alpha": 798578.7071044736,
@@ -649,9 +649,9 @@ const FALLBACK = {
      "earned_alpha": 40176.0,
      "earned_tao": 1237.17971786328,
      "earned_usd": 316574.43691744044,
-     "sold_alpha": -12835.339922143146,
-     "sold_tao": -395.2514492123744,
-     "sold_usd": -101138.5032978995,
+     "sold_alpha": 0.0,
+     "sold_tao": 0.0,
+     "sold_usd": 0.0,
      "retained_tao": 26223.863354131,
      "retained_usd": 6710265.820936575,
      "retained_alpha": 851590.0470266168,
@@ -707,25 +707,19 @@ const shortAddr=a=>a.slice(0,6)+'…'+a.slice(-4);
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
 function divergeBars(series){
-  // net sold per month in USD: positive=sold(red, up), negative=accumulated(green, down)
-  const W=560,H=210,padL=44,padB=26,padT=14;
+  // sold-to-TAO per month (USD), floored at 0. Red bars up; $0 when no sale.
+  const W=560,H=210,padL=46,padB=26,padT=14;
   const data=series.filter(s=>!s.baseline);
-  const vals=data.map(s=>s.sold_usd);
-  const max=Math.max(1,...vals.map(Math.abs));
-  const n=data.length, bw=(W-padL-8)/n*0.68, gap=(W-padL-8)/n;
-  const zeroY=padT+(H-padT-padB)/2, half=(H-padT-padB)/2;
+  const max=Math.max(1,...data.map(s=>s.sold_usd));
+  const n=data.length, gap=(W-padL-8)/n, bw=gap*0.62, base=H-padB, ih=base-padT;
   let bars='',lbl='';
   data.forEach((s,i)=>{
-    const x=padL+i*gap+gap*0.16;
-    const h=Math.abs(s.sold_usd)/max*half*0.92;
-    const up=s.sold_usd>=0;
-    const y=up?zeroY-h:zeroY;
-    const col=up?'var(--red)':'var(--accent)';
-    bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="${col}"><title>${s.month}: ${up?'sold':'accumulated'} ${usdC(Math.abs(s.sold_usd))}</title></rect>`;
+    const x=padL+i*gap+gap*0.19, h=s.sold_usd/max*ih;
+    bars+=`<rect x="${x.toFixed(1)}" y="${(base-h).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="1.5" fill="var(--red)"><title>${s.month}: sold ${usdC(s.sold_usd)}</title></rect>`;
     if(i%3===0||i===n-1) lbl+=`<text x="${(x+bw/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="8" fill="var(--text-muted)">${s.month.slice(2)}</text>`;
   });
-  const g=[max/2,max].map(v=>{const y=zeroY-v/max*half*0.92;const y2=zeroY+v/max*half*0.92;return `<text x="${padL-6}" y="${y+3}" text-anchor="end" font-size="8" fill="var(--text-muted)">${usdC(v)}</text><text x="${padL-6}" y="${y2+3}" text-anchor="end" font-size="8" fill="var(--text-muted)">${usdC(v)}</text>`}).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"><line x1="${padL}" y1="${zeroY}" x2="${W-4}" y2="${zeroY}" stroke="var(--border-hover)" stroke-width="1"/>${g}${bars}${lbl}<text x="${padL-6}" y="${zeroY+3}" text-anchor="end" font-size="8" fill="var(--text-muted)">0</text></svg>`;
+  const g=[max,max/2].map(v=>`<text x="${padL-6}" y="${(base-v/max*ih+3).toFixed(1)}" text-anchor="end" font-size="8" fill="var(--text-muted)">${usdC(v)}</text><line x1="${padL}" y1="${(base-v/max*ih).toFixed(1)}" x2="${W-4}" y2="${(base-v/max*ih).toFixed(1)}" stroke="var(--border)" stroke-width="1"/>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${g}<line x1="${padL}" y1="${base}" x2="${W-4}" y2="${base}" stroke="var(--border-hover)" stroke-width="1"/>${bars}${lbl}<text x="${padL-6}" y="${(base+3).toFixed(1)}" text-anchor="end" font-size="8" fill="var(--text-muted)">$0</text></svg>`;
 }
 function areaLine(series,key,color){
   const W=440,H=210,padL=46,padB=26,padT=14;
@@ -746,10 +740,9 @@ function walletHTML(w){
   const c=w.conviction||{};
   const lockedPct = c.available && w.retained_now_alpha ? Math.min(100, (c.owner_locked_alpha/w.retained_now_alpha*100)) : 0;
   const rows=w.series.map(s=>{
-    const scls=s.sold_usd>=0?'pos':'neg';
     return `<tr class="${s.baseline?'base':''}"><td>${s.month}</td>
       <td>${num(s.earned_alpha,0)}</td><td>${taoC(s.earned_tao)}</td><td>${usdC(s.earned_usd)}</td>
-      <td class="${s.baseline?'':scls}">${s.baseline?'—':(s.sold_usd>=0?usdC(s.sold_usd):'('+usdC(-s.sold_usd)+')')}</td>
+      <td class="${s.sold_usd>0?'pos':''}">${s.baseline?'—':(s.sold_usd>0?usdC(s.sold_usd):'$0')}</td>
       <td>${usdC(s.retained_usd)}</td></tr>`;
   }).join('');
   return `<section class="wsec" id="w-${w.netuid}">
@@ -757,13 +750,13 @@ function walletHTML(w){
     <div class="wmeta">Owner coldkey <a href="https://taostats.io/account/${w.owner}" target="_blank" rel="noopener">${shortAddr(w.owner)} ↗</a> · run by ${w.runner} · live since ${w.live_month} · owner cut ≈ ${num(w.owner_alpha_day,0)} α/day</div>
     <div class="statband">
       <div class="sb"><div class="sb-label">Owner emission earned</div><div class="sb-val up">${usdC(w.total_earned_usd)}</div><div class="sb-sub">since ${w.live_month}</div></div>
-      <div class="sb"><div class="sb-label">Net sold → TAO</div><div class="sb-val ${w.total_sold_usd>=0?'down':'up'}">${w.total_sold_usd>=0?usdC(w.total_sold_usd):'('+usdC(-w.total_sold_usd)+')'}</div><div class="sb-sub">${w.total_sold_usd<0?'net accumulated':'realised to TAO'}</div></div>
+      <div class="sb"><div class="sb-label">Sold → TAO</div><div class="sb-val down">${usdC(w.total_sold_usd)}</div><div class="sb-sub">realised from unstaking</div></div>
       <div class="sb"><div class="sb-label">% of emission kept</div><div class="sb-val">${num(w.net_kept_pct,0)}%</div><div class="sb-sub">${w.net_kept_pct>=100?'grew the stack':'held most of it'}</div></div>
       <div class="sb"><div class="sb-label">Retained now</div><div class="sb-val">${usdC(w.retained_now_usd)}</div><div class="sb-sub">${num(w.retained_now_alpha,0)} α · ${taoC(w.retained_now_tao)}</div></div>
       <div class="sb"><div class="sb-label">Owner conviction-lock</div><div class="sb-val">${num(lockedPct,0)}%</div><div class="sb-sub">fully liquid</div></div>
     </div>
     <div class="grid2">
-      <div class="panel"><h3>Sold vs accumulated, by month</h3><div class="cap">USD · <span class="down">red = α unstaked to TAO</span>, <span class="up">green = accumulated</span> (below zero)</div>${divergeBars(w.series)}</div>
+      <div class="panel"><h3>Sold to TAO, by month</h3><div class="cap">USD realised from α unstaked to TAO · $0 in accumulation months</div>${divergeBars(w.series)}</div>
       <div class="panel"><h3>Retained in wallet</h3><div class="cap">USD value of owner's staked α, month-end</div>${areaLine(w.series,'retained_usd',css('--accent'))}</div>
     </div>
     <div class="panel" style="margin-bottom:1.4rem">
